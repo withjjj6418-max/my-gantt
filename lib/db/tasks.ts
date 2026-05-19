@@ -107,3 +107,23 @@ export async function deleteTask(id: string): Promise<void> {
 
     revalidatePath('/')
 }
+
+// ============================================
+// 폼 데이터로부터 task 추가 (form action에서 사용)
+// ============================================
+export async function createTaskFromForm(formData: FormData): Promise<void> {
+    const input: TaskInsert = {
+        name: formData.get('name') as string,
+        start_date: formData.get('start_date') as string,
+        end_date: formData.get('end_date') as string,
+        type: (formData.get('type') as 'task' | 'milestone') ?? 'task',
+        progress: 0,
+    }
+
+    // milestone이면 start_date = end_date
+    if (input.type === 'milestone') {
+        input.end_date = input.start_date
+    }
+
+    await createTask(input)
+}
