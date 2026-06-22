@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import type { Task, Account, TaskStatus } from '@/lib/types/db'
+import type { Task, Account, Project, TaskStatus } from '@/lib/types/db'
 import { STATUS_CONFIG } from '@/lib/types/db'
 import { updateTask, deleteTask } from '@/lib/db/tasks'
 import { getAccounts } from '@/lib/db/accounts'
+import { getProjects } from '@/lib/db/projects'
 
 type Props = {
   task: Task
@@ -15,22 +16,25 @@ export default function TaskEditModal({ task, onClose }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [accounts, setAccounts] = useState<Account[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
 
-  // 폼 상태
   const [name, setName] = useState(task.name)
   const [type, setType] = useState<'task' | 'milestone'>(task.type)
   const [status, setStatus] = useState<TaskStatus>(task.status)
   const [accountId, setAccountId] = useState<string>(task.account_id ?? '')
+  const [projectId, setProjectId] = useState<string>(task.project_id ?? '')
   const [startDate, setStartDate] = useState(task.start_date)
   const [endDate, setEndDate] = useState(task.end_date)
   const [progress, setProgress] = useState(task.progress)
   const [description, setDescription] = useState(task.description ?? '')
 
-  // 계정 목록 로드
   useEffect(() => {
     getAccounts()
       .then(setAccounts)
       .catch((err) => console.error('계정 로드 실패:', err))
+    getProjects()
+      .then(setProjects)
+      .catch((err) => console.error('프로젝트 로드 실패:', err))
   }, [])
 
   function handleSave() {
@@ -42,6 +46,7 @@ export default function TaskEditModal({ task, onClose }: Props) {
           type,
           status,
           account_id: accountId || null,
+          project_id: projectId || null,
           start_date: startDate,
           end_date: type === 'milestone' ? startDate : endDate,
           progress,
@@ -81,7 +86,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
         </h2>
 
         <div className="space-y-3">
-          {/* 이름 */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               이름
@@ -94,7 +98,24 @@ export default function TaskEditModal({ task, onClose }: Props) {
             />
           </div>
 
-          {/* 타입 */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              프로젝트
+            </label>
+            <select
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="">미배정</option>
+              {projects.map((proj) => (
+                <option key={proj.id} value={proj.id}>
+                  {proj.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               타입
@@ -111,7 +132,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
             </select>
           </div>
 
-          {/* 상태 — 색상 배지로 표시 */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               상태
@@ -143,7 +163,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
             </div>
           </div>
 
-          {/* 계정 */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               계정
@@ -162,7 +181,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
             </select>
           </div>
 
-          {/* 시작일 */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               시작일
@@ -175,7 +193,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
             />
           </div>
 
-          {/* 종료일 (milestone이면 숨김) */}
           {type === 'task' && (
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -190,7 +207,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
             </div>
           )}
 
-          {/* 진행률 (task만) */}
           {type === 'task' && (
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -207,7 +223,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
             </div>
           )}
 
-          {/* 설명 */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               설명
@@ -223,7 +238,6 @@ export default function TaskEditModal({ task, onClose }: Props) {
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          {/* 버튼들 */}
           <div className="flex justify-between gap-2 pt-2">
             <button
               type="button"

@@ -113,6 +113,7 @@ export async function deleteTask(id: string): Promise<void> {
 // ============================================
 export async function createTaskFromForm(formData: FormData): Promise<void> {
   const accountIdRaw = formData.get('account_id') as string
+  const projectIdRaw = formData.get('project_id') as string
 
   const input: TaskInsert = {
     name: formData.get('name') as string,
@@ -126,11 +127,12 @@ export async function createTaskFromForm(formData: FormData): Promise<void> {
       | 'feedback'
       | 'done') ?? 'ready',
     progress: 0,
-    // 빈 문자열이면 null (미배정)
+
     account_id: accountIdRaw ? accountIdRaw : null,
+    project_id: projectIdRaw ? projectIdRaw : null,
   }
 
-  // milestone이면 start_date = end_date
+  
   if (input.type === 'milestone') {
     input.end_date = input.start_date
   }

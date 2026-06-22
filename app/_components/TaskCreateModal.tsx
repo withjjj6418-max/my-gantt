@@ -3,24 +3,33 @@
 import { useEffect, useState, useTransition } from 'react'
 import { createTaskFromForm } from '@/lib/db/tasks'
 import { getAccounts } from '@/lib/db/accounts'
-import type { Account, TaskStatus } from '@/lib/types/db'
+import { getProjects } from '@/lib/db/projects'
+import type { Account, Project, TaskStatus } from '@/lib/types/db'
 import { STATUS_CONFIG } from '@/lib/types/db'
 
-export default function TaskCreateModal() {
+type Props = {
+  defaultProjectId?: string | null
+}
+
+export default function TaskCreateModal({
+  defaultProjectId,
+}: Props = {}) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [accounts, setAccounts] = useState<Account[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
 
-  // 오늘 날짜 'YYYY-MM-DD'
   const today = new Date().toISOString().split('T')[0]
 
-  // 모달 열릴 때 계정 목록 로드
   useEffect(() => {
     if (isOpen) {
       getAccounts()
         .then(setAccounts)
         .catch((err) => console.error('계정 로드 실패:', err))
+      getProjects()
+        .then(setProjects)
+        .catch((err) => console.error('프로젝트 로드 실패:', err))
     }
   }, [isOpen])
 
@@ -72,6 +81,25 @@ export default function TaskCreateModal() {
                   placeholder="예: 디자인 작업"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 />
+              </div>
+
+              {/* 프로젝트 — 사용자가 직접 선택 가능 */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  프로젝트
+                </label>
+                <select
+                  name="project_id"
+                  defaultValue={defaultProjectId ?? ''}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
+                  <option value="">미배정</option>
+                  {projects.map((proj) => (
+                    <option key={proj.id} value={proj.id}>
+                      {proj.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* 타입 */}
