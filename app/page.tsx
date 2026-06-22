@@ -1,6 +1,7 @@
 import { getTasks } from '@/lib/db/tasks'
 import GanttView from './_components/GanttView'
 import TaskCreateModal from './_components/TaskCreateModal'
+import AccountManagerModal from './_components/AccountManagerModal'
 
 export default async function HomePage() {
   const tasks = await getTasks()
@@ -17,8 +18,11 @@ export default async function HomePage() {
           </p>
         </div>
 
-        {/* 우측 상단에 추가 버튼 */}
-        <TaskCreateModal />
+        {/* 우측 버튼 영역 */}
+        <div className="flex items-center gap-2">
+          <AccountManagerModal />
+          <TaskCreateModal />
+        </div>
       </header>
 
       <GanttView tasks={tasks} />
